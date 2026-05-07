@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package com.aegisdiamond.diamond;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.diamond.grpc";
+option java_outer_classname = "DiamondProto";
+
+service DiamondService {
+  rpc registerDiamond (DiamondRequest) returns (DiamondResponse);
+  rpc updateDiamondDetails (DiamondRequest) returns (DiamondResponse);
+  rpc verifyCertification (CertificateRequest) returns (CertificateResponse);
+  rpc linkCertificate (LinkCertificateRequest) returns (DiamondResponse);
+  rpc getDiamondById (DiamondIdRequest) returns (DiamondResponse);
+  rpc searchDiamonds (SearchRequest) returns (SearchResponse);
+}
+
+message DiamondRequest {
+  string id = 1;
+  string cut = 2;
+  string clarity = 3;
+  string color = 4;
+  double carat = 5;
+  string certificateId = 6;
+  string ownerId = 7;
+}
+
+message DiamondResponse {
+  string id = 1;
+  string cut = 2;
+  string clarity = 3;
+  string color = 4;
+  double carat = 5;
+  string certificateId = 6;
+  string status = 7;
+}
+
+message CertificateRequest {
+  string certificateId = 1;
+}
+
+message CertificateResponse {
+  bool isValid = 1;
+  string details = 2;
+}
+
+message LinkCertificateRequest {
+  string diamondId = 1;
+  string certificateId = 2;
+}
+
+message DiamondIdRequest {
+  string id = 1;
+}
+
+message SearchRequest {
+  string query = 1;
+}
+
+message SearchResponse {
+  repeated DiamondResponse diamonds = 1;
+}
