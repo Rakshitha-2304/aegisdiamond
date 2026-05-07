@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package com.aegisdiamond.fraud;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.fraud.grpc";
+option java_outer_classname = "FraudProto";
+
+service FraudService {
+  rpc detectTampering (TamperRequest) returns (FraudResponse);
+  rpc analyzeFraudPatterns (FraudRequest) returns (FraudResponse);
+  rpc flagSuspiciousShipments (FraudRequest) returns (FraudResponse);
+  rpc getFraudReports (ShipmentIdRequest) returns (FraudReportListResponse);
+}
+
+message TamperRequest {
+  int64 shipmentId = 1;
+  string sealId = 2;
+  string currentSealState = 3;
+}
+
+message FraudRequest {
+  int64 shipmentId = 1;
+  string payload = 2; // JSON or raw data for AI analysis
+}
+
+message FraudResponse {
+  bool isFraudulent = 1;
+  double probability = 2;
+  string description = 3;
+  string status = 4; // SECURE, SUSPICIOUS, COMPROMISED
+}
+
+message ShipmentIdRequest {
+  int64 shipmentId = 1;
+}
+
+message FraudReportListResponse {
+  repeated FraudReport reports = 1;
+}
+
+message FraudReport {
+  int64 id = 1;
+  int64 shipmentId = 2;
+  string type = 3;
+  string description = 4;
+  string timestamp = 5;
+}

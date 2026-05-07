@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package com.aegisdiamond.tracking;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.tracking.grpc";
+option java_outer_classname = "TrackingProto";
+
+service TrackingService {
+  rpc updateLocation (LocationRequest) returns (TrackingResponse);
+  rpc getCurrentLocation (ShipmentIdRequest) returns (TrackingResponse);
+  rpc getTrackingHistory (ShipmentIdRequest) returns (TrackingHistoryResponse);
+  rpc detectRouteDeviation (ShipmentIdRequest) returns (DeviationResponse);
+  rpc calculateETA (ShipmentIdRequest) returns (ETAResponse);
+}
+
+message LocationRequest {
+  int64 shipmentId = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string timestamp = 4;
+}
+
+message TrackingResponse {
+  int64 shipmentId = 1;
+  double latitude = 2;
+  double longitude = 3;
+  string timestamp = 4;
+  string status = 5;
+}
+
+message TrackingHistoryResponse {
+  int64 shipmentId = 1;
+  repeated TrackingResponse history = 2;
+}
+
+message ShipmentIdRequest {
+  int64 id = 1;
+}
+
+message DeviationResponse {
+  bool isDeviated = 1;
+  string message = 2;
+  double distanceInKm = 3;
+}
+
+message ETAResponse {
+  int64 shipmentId = 1;
+  string estimatedArrival = 2;
+  string remainingDistance = 3;
+}

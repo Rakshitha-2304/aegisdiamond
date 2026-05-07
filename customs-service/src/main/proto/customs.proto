@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package com.aegisdiamond.customs;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.customs.grpc";
+option java_outer_classname = "CustomsProto";
+
+service CustomsService {
+  rpc validateCustomsDocuments (CustomsRequest) returns (CustomsResponse);
+  rpc submitCustomsDeclaration (CustomsRequest) returns (CustomsResponse);
+  rpc approveCustomsClearance (CustomsIdRequest) returns (CustomsResponse);
+  rpc getComplianceStatus (CustomsIdRequest) returns (CustomsResponse);
+}
+
+message CustomsRequest {
+  int64 shipmentId = 1;
+  string originCountry = 2;
+  string destinationCountry = 3;
+  repeated int64 documentIds = 4;
+  double declarationValue = 5;
+}
+
+message CustomsResponse {
+  int64 shipmentId = 1;
+  string status = 2; // PENDING, APPROVED, REJECTED, DELAYED
+  string message = 3;
+  bool isCompliant = 4;
+}
+
+message CustomsIdRequest {
+  int64 shipmentId = 1;
+}

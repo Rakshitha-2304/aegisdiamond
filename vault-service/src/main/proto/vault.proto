@@ -1,0 +1,53 @@
+syntax = "proto3";
+
+package com.aegisdiamond.vault;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.vault.grpc";
+option java_outer_classname = "VaultProto";
+
+service VaultService {
+  rpc registerVault (VaultRequest) returns (VaultResponse);
+  rpc storeDiamond (StorageRequest) returns (VaultResponse);
+  rpc retrieveDiamond (StorageRequest) returns (VaultResponse);
+  rpc transferBetweenVaults (TransferRequest) returns (VaultResponse);
+  rpc getVaultInventory (VaultIdRequest) returns (InventoryResponse);
+}
+
+message VaultRequest {
+  int64 id = 1;
+  string location = 2;
+  int32 capacity = 3;
+  double latitude = 4;
+  double longitude = 5;
+}
+
+message VaultResponse {
+  int64 id = 1;
+  string location = 2;
+  string status = 3;
+  string message = 4;
+}
+
+message StorageRequest {
+  int64 vaultId = 1;
+  int64 diamondId = 2;
+  string mfaCode = 3;
+  double requesterLat = 4;
+  double requesterLon = 5;
+}
+
+message TransferRequest {
+  int64 sourceVaultId = 1;
+  int64 destinationVaultId = 2;
+  int64 diamondId = 3;
+}
+
+message VaultIdRequest {
+  int64 id = 1;
+}
+
+message InventoryResponse {
+  int64 vaultId = 1;
+  repeated int64 diamondIds = 2;
+}

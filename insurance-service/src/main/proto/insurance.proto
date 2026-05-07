@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package com.aegisdiamond.insurance;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.insurance.grpc";
+option java_outer_classname = "InsuranceProto";
+
+service InsuranceService {
+  rpc calculateDiamondValue (ValuationRequest) returns (ValuationResponse);
+  rpc createInsurancePolicy (PolicyRequest) returns (PolicyResponse);
+  rpc updateInsuranceCoverage (PolicyRequest) returns (PolicyResponse);
+  rpc claimInsurance (ClaimRequest) returns (ClaimResponse);
+  rpc getInsuranceDetails (ShipmentIdRequest) returns (PolicyResponse);
+}
+
+message ValuationRequest {
+  int64 diamondId = 1;
+  double basePrice = 2;
+  double carat = 3;
+  double qualityMultiplier = 4;
+}
+
+message ValuationResponse {
+  int64 diamondId = 1;
+  double calculatedValue = 2;
+  string currency = 3;
+}
+
+message PolicyRequest {
+  int64 shipmentId = 1;
+  double coverageAmount = 2;
+  string provider = 3;
+}
+
+message PolicyResponse {
+  int64 policyId = 1;
+  int64 shipmentId = 2;
+  double coverageAmount = 3;
+  string status = 4; // ACTIVE, EXPIRED, CLAIMED
+  string provider = 5;
+}
+
+message ClaimRequest {
+  int64 policyId = 1;
+  string reason = 2;
+  double claimAmount = 3;
+}
+
+message ClaimResponse {
+  int64 claimId = 1;
+  string status = 2; // PENDING, APPROVED, REJECTED
+  double approvedAmount = 3;
+}
+
+message ShipmentIdRequest {
+  int64 shipmentId = 1;
+}

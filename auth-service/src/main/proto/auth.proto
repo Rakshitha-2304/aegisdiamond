@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package com.aegisdiamond.auth;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.auth.grpc";
+option java_outer_classname = "AuthProto";
+
+service AuthService {
+  rpc register (RegisterRequest) returns (AuthResponse);
+  rpc login (LoginRequest) returns (AuthResponse);
+  rpc validateToken (ValidateRequest) returns (ValidateResponse);
+}
+
+message RegisterRequest {
+  string username = 1;
+  string password = 2;
+  string email = 3;
+  string role = 4;
+}
+
+message LoginRequest {
+  string username = 1;
+  string password = 2;
+}
+
+message AuthResponse {
+  string token = 1;
+  string username = 2;
+  string role = 3;
+  string message = 4;
+}
+
+message ValidateRequest {
+  string token = 1;
+}
+
+message ValidateResponse {
+  bool isValid = 1;
+  string username = 2;
+  string role = 3;
+}

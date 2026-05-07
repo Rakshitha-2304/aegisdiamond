@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package com.aegisdiamond.risk;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.risk.grpc";
+option java_outer_classname = "RiskProto";
+
+service RiskService {
+  rpc calculateRiskScore (RiskRequest) returns (RiskResponse);
+  rpc analyzeShipmentRisk (RiskRequest) returns (RiskResponse);
+  rpc detectAnomalies (AnomalyRequest) returns (AnomalyResponse);
+  rpc getRiskInsights (RiskRequest) returns (InsightResponse);
+}
+
+message RiskRequest {
+  int64 shipmentId = 1;
+  double shipmentValue = 2;
+  string route = 3;
+  double historicalRisk = 4;
+}
+
+message RiskResponse {
+  int64 shipmentId = 1;
+  double riskScore = 2;
+  string riskLevel = 3; // LOW, MEDIUM, HIGH, CRITICAL
+  bool requiresApproval = 4;
+}
+
+message AnomalyRequest {
+  int64 shipmentId = 1;
+  string currentData = 2;
+}
+
+message AnomalyResponse {
+  bool isAnomaly = 1;
+  string description = 2;
+  double confidenceScore = 3;
+}
+
+message InsightResponse {
+  int64 shipmentId = 1;
+  string aiInsights = 2;
+  repeated string recommendations = 3;
+}

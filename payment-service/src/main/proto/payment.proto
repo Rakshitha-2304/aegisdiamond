@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package com.aegisdiamond.payment;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.payment.grpc";
+option java_outer_classname = "PaymentProto";
+
+service PaymentService {
+  rpc initiatePayment (PaymentRequest) returns (PaymentResponse);
+  rpc confirmPayment (ConfirmRequest) returns (PaymentResponse);
+  rpc processEscrow (PaymentRequest) returns (PaymentResponse);
+  rpc releaseFunds (ConfirmRequest) returns (PaymentResponse);
+  rpc getTransactionDetails (TransactionIdRequest) returns (PaymentResponse);
+}
+
+message PaymentRequest {
+  int64 shipmentId = 1;
+  double amount = 2;
+  string currency = 3;
+  int64 payerId = 4;
+  int64 payeeId = 5;
+  bool useEscrow = 6;
+}
+
+message PaymentResponse {
+  int64 transactionId = 1;
+  string status = 2; // INITIATED, PENDING_ESCROW, CONFIRMED, RELEASED, FAILED
+  double amount = 3;
+  string message = 4;
+}
+
+message ConfirmRequest {
+  int64 transactionId = 1;
+}
+
+message TransactionIdRequest {
+  int64 id = 1;
+}

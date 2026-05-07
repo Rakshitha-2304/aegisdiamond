@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package com.aegisdiamond.analytics;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.analytics.grpc";
+option java_outer_classname = "AnalyticsProto";
+
+service AnalyticsService {
+  rpc getShipmentAnalytics (AnalyticsRequest) returns (ShipmentAnalyticsResponse);
+  rpc getRiskReports (AnalyticsRequest) returns (RiskReportResponse);
+  rpc getRevenueInsights (AnalyticsRequest) returns (RevenueResponse);
+  rpc getComplianceReports (AnalyticsRequest) returns (ComplianceReportResponse);
+}
+
+message AnalyticsRequest {
+  string startDate = 1; // ISO 8601
+  string endDate = 2;   // ISO 8601
+  string region = 3;
+}
+
+message ShipmentAnalyticsResponse {
+  int32 totalShipments = 1;
+  int32 deliveredShipments = 2;
+  int32 inTransitShipments = 3;
+  double averageDeliveryTimeHours = 4;
+}
+
+message RiskReportResponse {
+  int32 highRiskShipments = 1;
+  int32 totalIncidents = 2;
+  double averageRiskScore = 3;
+  map<string, int32> incidentsByType = 4;
+}
+
+message RevenueResponse {
+  double totalRevenue = 1;
+  double totalInsurancePremiums = 2;
+  double totalVaultFees = 3;
+  string currency = 4;
+}
+
+message ComplianceReportResponse {
+  int32 totalDeclarations = 1;
+  int32 compliantDeclarations = 2;
+  int32 nonCompliantDeclarations = 3;
+  double complianceRate = 4;
+}
