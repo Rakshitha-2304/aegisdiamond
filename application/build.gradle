@@ -16,6 +16,16 @@ java {
 repositories {
     mavenCentral()
 }
+ext {
+    springAiVersion = "2.0.0-M4"
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
 
 dependencies {
     implementation project(':diamond-service')
@@ -32,7 +42,10 @@ dependencies {
     implementation project(':analytics-service')
 
     // Spring AI (Transitive dependencies from services sometimes fail in complex modular setups)
+    //implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+    //implementation 'org.springframework.ai:spring-ai-openai-spring-boot-starter'
     implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
