@@ -178,7 +178,7 @@ RPC Methods:
 ● refreshToken
 ● assignRole
 Business Rules:
-● OAuth token validation
+● Jwt token validation
 ● Role-based RPC access
 Module 12: Analyze Operations &amp; Generate Reports
 RPC Methods:

@@ -1,17 +1,14 @@
 package com.aegisdiamond.diamond.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import java.util.UUID;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "diamonds")
 public class Diamond {
 
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false)
     private String cut;
@@ -26,19 +23,18 @@ public class Diamond {
     private double carat;
 
     @Column(unique = true, nullable = false)
-    private String certificateId;
+    private Long certificateId;
 
-    private String ownerId;
+    private Long ownerId;
 
     private String status;
 
     public Diamond() {
-        this.id = UUID.randomUUID().toString();
     }
 
     // Getters and Setters
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
     public String getCut() { return cut; }
     public void setCut(String cut) { this.cut = cut; }
@@ -52,11 +48,11 @@ public class Diamond {
     public double getCarat() { return carat; }
     public void setCarat(double carat) { this.carat = carat; }
 
-    public String getCertificateId() { return certificateId; }
-    public void setCertificateId(String certificateId) { this.certificateId = certificateId; }
+    public Long getCertificateId() { return certificateId; }
+    public void setCertificateId(Long certificateId) { this.certificateId = certificateId; }
 
-    public String getOwnerId() { return ownerId; }
-    public void setOwnerId(String ownerId) { this.ownerId = ownerId; }
+    public Long getOwnerId() { return ownerId; }
+    public void setOwnerId(Long ownerId) { this.ownerId = ownerId; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

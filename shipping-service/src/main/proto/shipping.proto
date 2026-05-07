@@ -16,35 +16,36 @@ service ShippingService {
 }
 
 message ShipmentRequest {
-  string id = 1;
+  int64 id = 1;
   string origin = 2;
   string destination = 3;
-  repeated string diamondIds = 4;
-  string shipperId = 5;
+  repeated int64 diamondIds = 4;
+  int64 shipperId = 5;
 }
 
 message ShipmentResponse {
-  string id = 1;
+  int64 id = 1;
   string origin = 2;
   string destination = 3;
-  repeated string diamondIds = 4;
+  repeated int64 diamondIds = 4;
   string status = 5;
   string containerId = 6;
   bool isSealed = 7;
+  int64 shipperId = 8;
 }
 
 message ContainerRequest {
-  string shipmentId = 1;
+  int64 shipmentId = 1;
   string containerId = 2;
 }
 
 message SealRequest {
-  string shipmentId = 1;
+  int64 shipmentId = 1;
   string sealId = 2;
 }
 
 message SecurityRequest {
-  string shipmentId = 1;
+  int64 shipmentId = 1;
 }
 
 message SecurityResponse {
@@ -53,5 +54,5 @@ message SecurityResponse {
 }
 
 message ShipmentIdRequest {
-  string id = 1;
+  int64 id = 1;
 }

@@ -7,14 +7,27 @@ plugins {
 group = 'com.aegisdiamond'
 version = '0.0.1-SNAPSHOT'
 
-java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(25)
+allprojects {
+	apply plugin: 'java'
+	java {
+		toolchain {
+			languageVersion = JavaLanguageVersion.of(25)
+		}
+	}
+	repositories {
+		mavenCentral()
+		maven { url 'https://repo.spring.io/milestone' }
 	}
 }
 
-repositories {
-	mavenCentral()
+subprojects {
+	apply plugin: 'io.spring.dependency-management'
+
+	dependencyManagement {
+		imports {
+			mavenBom "org.springframework.ai:spring-ai-bom:2.0.0-M5"
+		}
+	}
 }
 
 dependencies {

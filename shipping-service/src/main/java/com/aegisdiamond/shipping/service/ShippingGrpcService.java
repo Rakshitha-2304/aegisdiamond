@@ -28,6 +28,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
         responseObserver.onCompleted();
     }
 
+
     @Override
     public void updateShipmentDetails(ShipmentRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getId()).ifPresentOrElse(shipment -> {
@@ -101,13 +102,14 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
 
     private ShipmentResponse mapToResponse(Shipment shipment) {
         return ShipmentResponse.newBuilder()
-                .setId(shipment.getId())
+                .setId(shipment.getId() != null ? shipment.getId() : 0L)
                 .setOrigin(shipment.getOrigin())
                 .setDestination(shipment.getDestination())
                 .addAllDiamondIds(shipment.getDiamondIds())
                 .setStatus(shipment.getStatus())
                 .setContainerId(shipment.getContainerId() != null ? shipment.getContainerId() : "")
                 .setIsSealed(shipment.isSealed())
+                .setShipperId(shipment.getShipperId() != null ? shipment.getShipperId() : 0L)
                 .build();
     }
 }

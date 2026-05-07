@@ -19,14 +19,30 @@ repositories {
 
 dependencies {
     implementation project(':diamond-service')
-    // Add other services as they are implemented
-    // implementation project(':auth-service')
-    // implementation project(':shipping-service')
-    
+    implementation project(':auth-service')
+    implementation project(':shipping-service')
+    implementation project(':payment-service')
+    implementation project(':tracking-service')
+    implementation project(':risk-service')
+    implementation project(':fraud-service')
+    implementation project(':notification-service')
+    implementation project(':insurance-service')
+    implementation project(':vault-service')
+    implementation project(':customs-service')
+    implementation project(':analytics-service')
+
+    // Spring AI (Transitive dependencies from services sometimes fail in complex modular setups)
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
+
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     
+    // JWT for application module validation
+    implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+    runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.security:spring-security-test'
 }

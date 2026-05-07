@@ -50,8 +50,9 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     public void verifyCertification(CertificateRequest request, StreamObserver<CertificateResponse> responseObserver) {
         boolean isValid = diamondRepository.findByCertificateId(request.getCertificateId()).isPresent();
         responseObserver.onNext(CertificateResponse.newBuilder()
+                .setCertificateId(request.getCertificateId())
                 .setIsValid(isValid)
-                .setDetails(isValid ? "Valid Certificate" : "Invalid or Not Found")
+                .setMessage(isValid ? "Valid Certificate" : "Invalid or Not Found")
                 .build());
         responseObserver.onCompleted();
     }
@@ -94,12 +95,13 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
 
     private DiamondResponse mapToResponse(Diamond diamond) {
         return DiamondResponse.newBuilder()
-                .setId(diamond.getId())
+                .setId(diamond.getId() != null ? diamond.getId() : 0L)
                 .setCut(diamond.getCut())
                 .setClarity(diamond.getClarity())
                 .setColor(diamond.getColor())
                 .setCarat(diamond.getCarat())
-                .setCertificateId(diamond.getCertificateId() != null ? diamond.getCertificateId() : "")
+                .setCertificateId(diamond.getCertificateId() != null ? diamond.getCertificateId() : 0L)
+                .setOwnerId(diamond.getOwnerId() != null ? diamond.getOwnerId() : 0L)
                 .setStatus(diamond.getStatus())
                 .build();
     }

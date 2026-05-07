@@ -16,41 +16,44 @@ service DiamondService {
 }
 
 message DiamondRequest {
-  string id = 1;
+  int64 id = 1;
   string cut = 2;
   string clarity = 3;
   string color = 4;
   double carat = 5;
-  string certificateId = 6;
-  string ownerId = 7;
-}
+  int64 certificateId = 6;
+  int64 ownerId = 7;
+  }
 
-message DiamondResponse {
-  string id = 1;
+  message DiamondResponse {
+  int64 id = 1;
   string cut = 2;
   string clarity = 3;
   string color = 4;
   double carat = 5;
-  string certificateId = 6;
-  string status = 7;
-}
+  int64 certificateId = 6;
+  int64 ownerId = 7;
+  string status = 8;
+  }
+  message CertificateRequest {
+  int64 certificateId = 1;
+  }
 
-message CertificateRequest {
-  string certificateId = 1;
-}
+  message LinkCertificateRequest {
+  int64 diamondId = 1;
+  int64 certificateId = 2;
+  }
 
 message CertificateResponse {
-  bool isValid = 1;
-  string details = 2;
-}
-
-message LinkCertificateRequest {
-  string diamondId = 1;
-  string certificateId = 2;
+  int64 certificateId = 1;
+  bool isValid = 2;
+  string issuedBy = 3;
+  string issuedAt = 4;
+  string message = 5;
 }
 
 message DiamondIdRequest {
-  string id = 1;
+  int64 id = 1;
 }
 
 message SearchRequest {

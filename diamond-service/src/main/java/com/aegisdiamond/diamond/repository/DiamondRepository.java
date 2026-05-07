@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface DiamondRepository extends JpaRepository<Diamond, String> {
-    Optional<Diamond> findByCertificateId(String certificateId);
+public interface DiamondRepository extends JpaRepository<Diamond, Long> {
+    Optional<Diamond> findByCertificateId(Long certificateId);
     List<Diamond> findByCutContainingOrClarityContainingOrColorContaining(String cut, String clarity, String color);
 }
