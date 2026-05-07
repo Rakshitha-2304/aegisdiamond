@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package com.aegisdiamond.shipping;
+
+option java_multiple_files = true;
+option java_package = "com.aegisdiamond.shipping.grpc";
+option java_outer_classname = "ShippingProto";
+
+service ShippingService {
+  rpc createShipment (ShipmentRequest) returns (ShipmentResponse);
+  rpc updateShipmentDetails (ShipmentRequest) returns (ShipmentResponse);
+  rpc assignSecureContainer (ContainerRequest) returns (ShipmentResponse);
+  rpc sealShipment (SealRequest) returns (ShipmentResponse);
+  rpc validateShipmentSecurity (SecurityRequest) returns (SecurityResponse);
+  rpc getShipmentDetails (ShipmentIdRequest) returns (ShipmentResponse);
+}
+
+message ShipmentRequest {
+  string id = 1;
+  string origin = 2;
+  string destination = 3;
+  repeated string diamondIds = 4;
+  string shipperId = 5;
+}
+
+message ShipmentResponse {
+  string id = 1;
+  string origin = 2;
+  string destination = 3;
+  repeated string diamondIds = 4;
+  string status = 5;
+  string containerId = 6;
+  bool isSealed = 7;
+}
+
+message ContainerRequest {
+  string shipmentId = 1;
+  string containerId = 2;
+}
+
+message SealRequest {
+  string shipmentId = 1;
+  string sealId = 2;
+}
+
+message SecurityRequest {
+  string shipmentId = 1;
+}
+
+message SecurityResponse {
+  bool isValid = 1;
+  string securityReport = 2;
+}
+
+message ShipmentIdRequest {
+  string id = 1;
+}
