@@ -176,7 +176,7 @@ RPC Methods:
 ● login
 ● validateToken
 ● refreshToken
-● assignRole
+● assignRoleand
 Business Rules:
 ● Jwt token validation
 ● Role-based RPC access

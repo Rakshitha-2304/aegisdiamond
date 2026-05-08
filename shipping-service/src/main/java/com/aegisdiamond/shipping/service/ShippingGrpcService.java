@@ -6,6 +6,8 @@ import com.aegisdiamond.shipping.repository.ShipmentRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.Optional;
 
 @GrpcService
@@ -15,6 +17,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     private ShipmentRepository shipmentRepository;
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER')")
     public void createShipment(ShipmentRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         Shipment shipment = new Shipment();
         shipment.setOrigin(request.getOrigin());
@@ -30,6 +33,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
 
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void updateShipmentDetails(ShipmentRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getId()).ifPresentOrElse(shipment -> {
             if (shipment.isSealed()) {
@@ -50,6 +54,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void assignSecureContainer(ContainerRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getShipmentId()).ifPresentOrElse(shipment -> {
             shipment.setContainerId(request.getContainerId());
@@ -63,6 +68,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void sealShipment(SealRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getShipmentId()).ifPresentOrElse(shipment -> {
             shipment.setSealId(request.getSealId());
@@ -77,6 +83,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void validateShipmentSecurity(SecurityRequest request, StreamObserver<SecurityResponse> responseObserver) {
         shipmentRepository.findById(request.getShipmentId()).ifPresentOrElse(shipment -> {
             boolean isValid = shipment.isSealed() && shipment.getContainerId() != null && !shipment.getContainerId().isEmpty();
@@ -91,6 +98,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
     public void getShipmentDetails(ShipmentIdRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getId()).ifPresentOrElse(shipment -> {
             responseObserver.onNext(mapToResponse(shipment));

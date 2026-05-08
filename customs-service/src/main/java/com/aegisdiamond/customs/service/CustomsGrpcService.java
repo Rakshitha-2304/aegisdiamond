@@ -6,6 +6,8 @@ import com.aegisdiamond.customs.repository.CustomsRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.time.LocalDateTime;
 
 @GrpcService
@@ -18,6 +20,7 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     private ComplianceEngine complianceEngine;
 
     @Override
+    @PreAuthorize("hasRole('CUSTOMS_OFFICER')")
     public void validateCustomsDocuments(CustomsRequest request, StreamObserver<CustomsResponse> responseObserver) {
         boolean isValid = complianceEngine.validateDocuments(request.getOriginCountry(), request.getDestinationCountry(), request.getDocumentIdsList());
         
@@ -31,6 +34,7 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SHIPPER', 'CUSTOMS_OFFICER')")
     public void submitCustomsDeclaration(CustomsRequest request, StreamObserver<CustomsResponse> responseObserver) {
         CustomsDeclaration declaration = customsRepository.findByShipmentId(request.getShipmentId())
                 .orElse(new CustomsDeclaration());
@@ -50,6 +54,7 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasRole('CUSTOMS_OFFICER')")
     public void approveCustomsClearance(CustomsIdRequest request, StreamObserver<CustomsResponse> responseObserver) {
         customsRepository.findByShipmentId(request.getShipmentId()).ifPresentOrElse(declaration -> {
             if (!declaration.isCompliant()) {
@@ -67,6 +72,7 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SHIPPER', 'CUSTOMS_OFFICER')")
     public void getComplianceStatus(CustomsIdRequest request, StreamObserver<CustomsResponse> responseObserver) {
         customsRepository.findByShipmentId(request.getShipmentId()).ifPresentOrElse(declaration -> {
             responseObserver.onNext(mapToResponse(declaration));

@@ -6,6 +6,7 @@ import com.aegisdiamond.fraud.repository.FraudRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +21,7 @@ public class FraudGrpcService extends FraudServiceGrpc.FraudServiceImplBase {
     private AiFraudEngine aiFraudEngine;
 
     @Override
+    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
     public void detectTampering(TamperRequest request, StreamObserver<FraudResponse> responseObserver) {
         boolean isTampered = !request.getCurrentSealState().equalsIgnoreCase("INTACT");
         
@@ -37,6 +39,7 @@ public class FraudGrpcService extends FraudServiceGrpc.FraudServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasRole('INSURANCE_AGENT')")
     public void analyzeFraudPatterns(FraudRequest request, StreamObserver<FraudResponse> responseObserver) {
         String analysis = aiFraudEngine.analyzePatterns(request.getShipmentId(), request.getPayload());
         boolean isFraud = analysis.contains("FRAUD DETECTED");
@@ -56,12 +59,14 @@ public class FraudGrpcService extends FraudServiceGrpc.FraudServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
     public void flagSuspiciousShipments(FraudRequest request, StreamObserver<FraudResponse> responseObserver) {
         // High-level wrapper for AI flagging
         analyzeFraudPatterns(request, responseObserver);
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
     public void getFraudReports(ShipmentIdRequest request, StreamObserver<FraudReportListResponse> responseObserver) {
         List<FraudIncident> incidents = fraudRepository.findByShipmentIdOrderByDetectedAtDesc(request.getShipmentId());
         

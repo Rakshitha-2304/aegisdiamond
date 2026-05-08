@@ -6,6 +6,7 @@ import com.aegisdiamond.vault.repository.VaultRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @GrpcService
 public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
@@ -17,6 +18,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     private GeoSecurityService geoSecurityService;
 
     @Override
+    @PreAuthorize("hasRole('VAULT_MANAGER')")
     public void registerVault(VaultRequest request, StreamObserver<VaultResponse> responseObserver) {
         Vault vault = new Vault();
         vault.setLocation(request.getLocation());
@@ -35,6 +37,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasRole('VAULT_MANAGER')")
     public void storeDiamond(StorageRequest request, StreamObserver<VaultResponse> responseObserver) {
         vaultRepository.findById(request.getVaultId()).ifPresentOrElse(vault -> {
             // Security Checks
@@ -69,6 +72,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasRole('VAULT_MANAGER')")
     public void retrieveDiamond(StorageRequest request, StreamObserver<VaultResponse> responseObserver) {
         vaultRepository.findById(request.getVaultId()).ifPresentOrElse(vault -> {
             if (!mockMfaCheck(request.getMfaCode())) {
@@ -96,6 +100,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasRole('VAULT_MANAGER')")
     public void transferBetweenVaults(TransferRequest request, StreamObserver<VaultResponse> responseObserver) {
         Vault source = vaultRepository.findById(request.getSourceVaultId()).orElse(null);
         Vault destination = vaultRepository.findById(request.getDestinationVaultId()).orElse(null);
@@ -130,6 +135,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasRole('VAULT_MANAGER')")
     public void getVaultInventory(VaultIdRequest request, StreamObserver<InventoryResponse> responseObserver) {
         vaultRepository.findById(request.getId()).ifPresentOrElse(vault -> {
             responseObserver.onNext(InventoryResponse.newBuilder()

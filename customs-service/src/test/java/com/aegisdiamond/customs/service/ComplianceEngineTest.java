@@ -11,17 +11,17 @@ class ComplianceEngineTest {
     @Test
     void testValidateDocumentsUAE() {
         // UAE requires 3+ documents
-        List<String> docs = List.of("Inv", "Pack", "Security");
+        List<Long> docs = List.of(1L, 2L, 3L);
         assertTrue(complianceEngine.validateDocuments("India", "UAE", docs));
         
-        List<String> insufficientDocs = List.of("Inv", "Pack");
+        List<Long> insufficientDocs = List.of(1L, 2L);
         assertFalse(complianceEngine.validateDocuments("India", "UAE", insufficientDocs));
     }
 
     @Test
     void testValidateDocumentsGeneric() {
         // Other countries require at least 1 document
-        List<String> docs = List.of("Inv");
+        List<Long> docs = List.of(1L);
         assertTrue(complianceEngine.validateDocuments("India", "Belgium", docs));
         
         assertFalse(complianceEngine.validateDocuments("India", "Belgium", List.of()));

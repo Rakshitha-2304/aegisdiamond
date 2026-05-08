@@ -12,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Optional;
 
 @GrpcService
+@jakarta.annotation.security.PermitAll
 public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Autowired

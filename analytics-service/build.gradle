@@ -21,7 +21,6 @@ repositories {
 
 dependencies {
     implementation project(':shipping-service')
-    implementation project(':diamond-service')
     implementation project(':risk-service')
     implementation project(':fraud-service')
     implementation project(':payment-service')

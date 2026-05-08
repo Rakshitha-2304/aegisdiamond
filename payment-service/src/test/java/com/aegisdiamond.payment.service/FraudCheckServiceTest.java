@@ -9,12 +9,12 @@ class FraudCheckServiceTest {
 
     @Test
     void testIsTransactionSafe_NormalAmount() {
-        assertTrue(fraudCheckService.isTransactionSafe("tx-1", 50000.0));
+        assertTrue(fraudCheckService.isTransactionSafe(101L, 50000.0));
     }
 
     @Test
     void testIsTransactionSafe_HighValue() {
         // Amount over 5,000,000 should fail in our mock
-        assertFalse(fraudCheckService.isTransactionSafe("tx-2", 6000000.0));
+        assertFalse(fraudCheckService.isTransactionSafe(102L, 6000000.0));
     }
 }

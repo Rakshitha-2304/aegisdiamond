@@ -6,6 +6,8 @@ import com.aegisdiamond.diamond.repository.DiamondRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,6 +18,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     private DiamondRepository diamondRepository;
 
     @Override
+    @PreAuthorize("hasRole('SUPPLIER')")
     public void registerDiamond(DiamondRequest request, StreamObserver<DiamondResponse> responseObserver) {
         Diamond diamond = new Diamond();
         diamond.setCut(request.getCut());
@@ -32,6 +35,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasRole('SUPPLIER')")
     public void updateDiamondDetails(DiamondRequest request, StreamObserver<DiamondResponse> responseObserver) {
         diamondRepository.findById(request.getId()).ifPresentOrElse(diamond -> {
             diamond.setCut(request.getCut());
@@ -47,6 +51,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public void verifyCertification(CertificateRequest request, StreamObserver<CertificateResponse> responseObserver) {
         boolean isValid = diamondRepository.findByCertificateId(request.getCertificateId()).isPresent();
         responseObserver.onNext(CertificateResponse.newBuilder()
@@ -58,6 +63,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasRole('SUPPLIER')")
     public void linkCertificate(LinkCertificateRequest request, StreamObserver<DiamondResponse> responseObserver) {
         diamondRepository.findById(request.getDiamondId()).ifPresentOrElse(diamond -> {
             diamond.setCertificateId(request.getCertificateId());
@@ -71,6 +77,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'VAULT_MANAGER', 'INSURANCE_AGENT')")
     public void getDiamondById(DiamondIdRequest request, StreamObserver<DiamondResponse> responseObserver) {
         diamondRepository.findById(request.getId()).ifPresentOrElse(diamond -> {
             responseObserver.onNext(mapToResponse(diamond));
@@ -81,6 +88,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER')")
     public void searchDiamonds(SearchRequest request, StreamObserver<SearchResponse> responseObserver) {
         List<Diamond> diamonds = diamondRepository.findByCutContainingOrClarityContainingOrColorContaining(
                 request.getQuery(), request.getQuery(), request.getQuery());

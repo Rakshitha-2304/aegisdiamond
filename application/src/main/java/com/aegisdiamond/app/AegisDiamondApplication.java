@@ -6,7 +6,7 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@SpringBootApplication
+@SpringBootApplication(exclude = {net.devh.boot.grpc.server.autoconfigure.GrpcServerSecurityAutoConfiguration.class})
 @ComponentScan(basePackages = {"com.aegisdiamond"})
 @EnableJpaRepositories(basePackages = {"com.aegisdiamond"})
 @EntityScan(basePackages = {"com.aegisdiamond"})

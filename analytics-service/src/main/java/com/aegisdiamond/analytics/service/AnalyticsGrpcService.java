@@ -12,6 +12,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.TypedQuery;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.HashMap;
 import java.util.List;
@@ -25,6 +26,7 @@ public class AnalyticsGrpcService extends AnalyticsServiceGrpc.AnalyticsServiceI
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public void getShipmentAnalytics(AnalyticsRequest request, StreamObserver<ShipmentAnalyticsResponse> responseObserver) {
         Long total = entityManager.createQuery("SELECT COUNT(s) FROM Shipment s", Long.class).getSingleResult();
         Long delivered = entityManager.createQuery("SELECT COUNT(s) FROM Shipment s WHERE s.status = 'DELIVERED'", Long.class).getSingleResult();
@@ -41,6 +43,7 @@ public class AnalyticsGrpcService extends AnalyticsServiceGrpc.AnalyticsServiceI
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ADMIN', 'INSURANCE_AGENT')")
     public void getRiskReports(AnalyticsRequest request, StreamObserver<RiskReportResponse> responseObserver) {
         Long highRisk = entityManager.createQuery("SELECT COUNT(r) FROM RiskAssessment r WHERE r.riskLevel = 'HIGH' OR r.riskLevel = 'CRITICAL'", Long.class).getSingleResult();
         Double avgScore = entityManager.createQuery("SELECT AVG(r.riskScore) FROM RiskAssessment r", Double.class).getSingleResult();
@@ -67,6 +70,7 @@ public class AnalyticsGrpcService extends AnalyticsServiceGrpc.AnalyticsServiceI
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasRole('ADMIN')")
     public void getRevenueInsights(AnalyticsRequest request, StreamObserver<RevenueResponse> responseObserver) {
         Double totalRev = entityManager.createQuery("SELECT SUM(t.amount) FROM Transaction t WHERE t.status = 'RELEASED' OR t.status = 'CONFIRMED'", Double.class).getSingleResult();
         Double insurance = entityManager.createQuery("SELECT SUM(p.coverageAmount) FROM InsurancePolicy p", Double.class).getSingleResult(); 
@@ -84,6 +88,7 @@ public class AnalyticsGrpcService extends AnalyticsServiceGrpc.AnalyticsServiceI
 
     @Override
     @Transactional(readOnly = true)
+    @PreAuthorize("hasAnyRole('ADMIN', 'CUSTOMS_OFFICER')")
     public void getComplianceReports(AnalyticsRequest request, StreamObserver<ComplianceReportResponse> responseObserver) {
         Long total = entityManager.createQuery("SELECT COUNT(c) FROM CustomsDeclaration c", Long.class).getSingleResult();
         Long compliant = entityManager.createQuery("SELECT COUNT(c) FROM CustomsDeclaration c WHERE c.isCompliant = true", Long.class).getSingleResult();

@@ -8,6 +8,7 @@ import com.aegisdiamond.insurance.repository.InsuranceRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @GrpcService
 public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceImplBase {
@@ -22,6 +23,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     private ValuationService valuationService;
 
     @Override
+    @PreAuthorize("hasRole('INSURANCE_AGENT')")
     public void calculateDiamondValue(ValuationRequest request, StreamObserver<ValuationResponse> responseObserver) {
         double value = valuationService.calculateDiamondValue(request.getBasePrice(), request.getCarat(), request.getQualityMultiplier());
         
@@ -34,6 +36,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     }
 
     @Override
+    @PreAuthorize("hasRole('INSURANCE_AGENT')")
     public void createInsurancePolicy(PolicyRequest request, StreamObserver<PolicyResponse> responseObserver) {
         InsurancePolicy policy = insuranceRepository.findByShipmentId(request.getShipmentId())
                 .orElse(new InsurancePolicy());
@@ -49,6 +52,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     }
 
     @Override
+    @PreAuthorize("hasRole('INSURANCE_AGENT')")
     public void updateInsuranceCoverage(PolicyRequest request, StreamObserver<PolicyResponse> responseObserver) {
         insuranceRepository.findByShipmentId(request.getShipmentId()).ifPresentOrElse(policy -> {
             policy.setCoverageAmount(request.getCoverageAmount());
@@ -61,6 +65,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'INSURANCE_AGENT')")
     public void claimInsurance(ClaimRequest request, StreamObserver<ClaimResponse> responseObserver) {
         insuranceRepository.findById(request.getPolicyId()).ifPresentOrElse(policy -> {
             InsuranceClaim claim = new InsuranceClaim();
@@ -90,6 +95,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'INSURANCE_AGENT')")
     public void getInsuranceDetails(ShipmentIdRequest request, StreamObserver<PolicyResponse> responseObserver) {
         insuranceRepository.findByShipmentId(request.getShipmentId()).ifPresentOrElse(policy -> {
             responseObserver.onNext(mapToPolicyResponse(policy));

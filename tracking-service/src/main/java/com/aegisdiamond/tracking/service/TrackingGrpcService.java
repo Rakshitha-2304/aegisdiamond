@@ -7,6 +7,8 @@ import com.aegisdiamond.tracking.util.LocationUtils;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -21,6 +23,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     private static final double MAX_ALLOWED_DEVIATION_KM = 50.0; // Example threshold
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void updateLocation(LocationRequest request, StreamObserver<TrackingResponse> responseObserver) {
         TrackingRecord record = new TrackingRecord();
         record.setShipmentId(request.getShipmentId());
@@ -34,6 +37,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'CUSTOMS_OFFICER', 'INSURANCE_AGENT')")
     public void getCurrentLocation(ShipmentIdRequest request, StreamObserver<TrackingResponse> responseObserver) {
         trackingRepository.findFirstByShipmentIdOrderByTimestampDesc(request.getId()).ifPresentOrElse(record -> {
             responseObserver.onNext(mapToResponse(record));
@@ -44,6 +48,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void getTrackingHistory(ShipmentIdRequest request, StreamObserver<TrackingHistoryResponse> responseObserver) {
         List<TrackingRecord> history = trackingRepository.findByShipmentIdOrderByTimestampDesc(request.getId());
         TrackingHistoryResponse response = TrackingHistoryResponse.newBuilder()
@@ -55,6 +60,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
     public void detectRouteDeviation(ShipmentIdRequest request, StreamObserver<DeviationResponse> responseObserver) {
         trackingRepository.findFirstByShipmentIdOrderByTimestampDesc(request.getId()).ifPresentOrElse(record -> {
             // Mock expected route check
@@ -76,6 +82,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void calculateETA(ShipmentIdRequest request, StreamObserver<ETAResponse> responseObserver) {
         trackingRepository.findFirstByShipmentIdOrderByTimestampDesc(request.getId()).ifPresentOrElse(record -> {
             // Simple mock ETA calculation

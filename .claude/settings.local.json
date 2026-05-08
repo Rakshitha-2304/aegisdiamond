@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew :shipping-service:test --tests \"com.aegisdiamond.shipping.service.ShippingGrpcServiceTest\")",
+      "Bash(./gradlew :shipping-service:test --tests \"com.aegisdiamond.shipping.service.ShippingGrpcServiceTest.assignSecureContainer_Success\" --info)",
+      "Bash(./gradlew :shipping-service:test --tests \"com.aegisdiamond.shipping.service.ShippingGrpcServiceTest.updateShipmentDetails_FailsWhenSealed\" --stacktrace)",
+      "Bash(./gradlew :shipping-service:test --tests \"com.aegisdiamond.shipping.service.ShippingGrpcServiceTest.updateShipmentDetails_FailsWhenSealed\")"
+    ]
+  }
+}

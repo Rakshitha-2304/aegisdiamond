@@ -6,6 +6,8 @@ import com.aegisdiamond.notification.repository.NotificationRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     private AlertDispatcher alertDispatcher;
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void sendSecurityAlert(AlertRequest request, StreamObserver<NotificationResponse> responseObserver) {
         Notification notification = new Notification();
         notification.setShipmentId(request.getShipmentId());
@@ -38,6 +41,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     }
 
     @Override
+    @PreAuthorize("hasRole('SHIPPER')")
     public void sendShipmentUpdate(UpdateRequest request, StreamObserver<NotificationResponse> responseObserver) {
         Notification notification = new Notification();
         notification.setShipmentId(request.getShipmentId());
@@ -56,6 +60,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     }
 
     @Override
+    @PreAuthorize("hasRole('INSURANCE_AGENT')")
     public void sendRiskAlert(AlertRequest request, StreamObserver<NotificationResponse> responseObserver) {
         Notification notification = new Notification();
         notification.setShipmentId(request.getShipmentId());
@@ -74,6 +79,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     }
 
     @Override
+    @PreAuthorize("isAuthenticated()")
     public void getNotifications(UserRequest request, StreamObserver<NotificationListResponse> responseObserver) {
         // Simplified: return all notifications for demonstration
         List<Notification> notifications = notificationRepository.findAll();

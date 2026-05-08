@@ -6,6 +6,7 @@ import com.aegisdiamond.risk.repository.RiskRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 
@@ -19,6 +20,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     private AiRiskEngine aiRiskEngine;
 
     @Override
+    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
     public void calculateRiskScore(RiskRequest request, StreamObserver<RiskResponse> responseObserver) {
         // Mock route risk for formula
         double routeRisk = request.getRoute().contains("High-Risk") ? 0.9 : 0.2;
@@ -33,6 +35,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
     public void analyzeShipmentRisk(RiskRequest request, StreamObserver<RiskResponse> responseObserver) {
         double routeRisk = request.getRoute().contains("High-Risk") ? 0.9 : 0.2;
         double score = aiRiskEngine.calculateFormulaicRisk(request.getShipmentValue(), routeRisk, request.getHistoricalRisk());
@@ -48,6 +51,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasRole('INSURANCE_AGENT')")
     public void detectAnomalies(AnomalyRequest request, StreamObserver<AnomalyResponse> responseObserver) {
         String analysis = aiRiskEngine.detectAnomalies(request.getShipmentId(), request.getCurrentData());
         boolean isAnomaly = analysis.contains("ANOMALY DETECTED");
@@ -61,6 +65,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
     public void getRiskInsights(RiskRequest request, StreamObserver<InsightResponse> responseObserver) {
         List<RiskAssessment> history = riskRepository.findByShipmentIdOrderByAssessedAtDesc(request.getShipmentId());
         
