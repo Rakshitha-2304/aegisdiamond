@@ -94,6 +94,7 @@ class DiamondGrpcServiceTest {
         existingDiamond.setClarity("VS1");
         existingDiamond.setColor("G");
         existingDiamond.setCarat(1.5);
+        existingDiamond.setStatus("REGISTERED");
 
         when(diamondRepository.findById(1L)).thenReturn(Optional.of(existingDiamond));
         when(diamondRepository.save(any(Diamond.class))).thenReturn(existingDiamond);
@@ -123,8 +124,8 @@ class DiamondGrpcServiceTest {
                 .setCut("Excellent")
                 .build();
 
-        assertThrows(StatusRuntimeException.class, () ->
-                diamondGrpcService.updateDiamondDetails(request, responseObserver));
+        diamondGrpcService.updateDiamondDetails(request, responseObserver);
+        verify(responseObserver).onError(any(StatusRuntimeException.class));
     }
 
     @Test
@@ -132,6 +133,8 @@ class DiamondGrpcServiceTest {
         Diamond diamond = new Diamond();
         diamond.setId(1L);
         diamond.setCertificateId(1001L);
+        diamond.setCut("Excellent");
+        diamond.setStatus("CERTIFIED");
 
         when(diamondRepository.findByCertificateId(1001L)).thenReturn(Optional.of(diamond));
 
@@ -166,6 +169,7 @@ class DiamondGrpcServiceTest {
         Diamond diamond = new Diamond();
         diamond.setId(1L);
         diamond.setStatus("REGISTERED");
+        diamond.setCut("Excellent");
 
         when(diamondRepository.findById(1L)).thenReturn(Optional.of(diamond));
         when(diamondRepository.save(any(Diamond.class))).thenReturn(diamond);
@@ -188,6 +192,7 @@ class DiamondGrpcServiceTest {
         diamond.setId(1L);
         diamond.setCut("Excellent");
         diamond.setCarat(2.0);
+        diamond.setStatus("REGISTERED");
 
         when(diamondRepository.findById(1L)).thenReturn(Optional.of(diamond));
 
@@ -204,6 +209,7 @@ class DiamondGrpcServiceTest {
         Diamond diamond = new Diamond();
         diamond.setId(1L);
         diamond.setCut("Excellent");
+        diamond.setStatus("REGISTERED");
 
         when(diamondRepository.findByCutContainingOrClarityContainingOrColorContaining(anyString(), anyString(), anyString()))
                 .thenReturn(java.util.List.of(diamond));

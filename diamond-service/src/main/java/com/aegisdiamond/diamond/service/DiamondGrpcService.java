@@ -20,6 +20,23 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     @Override
     @PreAuthorize("hasRole('SUPPLIER')")
     public void registerDiamond(DiamondRequest request, StreamObserver<DiamondResponse> responseObserver) {
+        // Requirement: 4Cs (cut, clarity, color, carat) mandatory
+        if (request.getCut().isEmpty() || request.getClarity().isEmpty() || 
+            request.getColor().isEmpty() || request.getCarat() <= 0) {
+            responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
+                    .withDescription("4Cs (cut, clarity, color, carat) are mandatory and carat must be positive")
+                    .asRuntimeException());
+            return;
+        }
+
+        // Requirement: Unique certificate ID required
+        if (diamondRepository.findByCertificateId(request.getCertificateId()).isPresent()) {
+            responseObserver.onError(io.grpc.Status.ALREADY_EXISTS
+                    .withDescription("Diamond with certificate ID " + request.getCertificateId() + " already exists")
+                    .asRuntimeException());
+            return;
+        }
+
         Diamond diamond = new Diamond();
         diamond.setCut(request.getCut());
         diamond.setClarity(request.getClarity());
@@ -104,13 +121,13 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     private DiamondResponse mapToResponse(Diamond diamond) {
         return DiamondResponse.newBuilder()
                 .setId(diamond.getId() != null ? diamond.getId() : 0L)
-                .setCut(diamond.getCut())
-                .setClarity(diamond.getClarity())
-                .setColor(diamond.getColor())
+                .setCut(diamond.getCut() != null ? diamond.getCut() : "")
+                .setClarity(diamond.getClarity() != null ? diamond.getClarity() : "")
+                .setColor(diamond.getColor() != null ? diamond.getColor() : "")
                 .setCarat(diamond.getCarat())
                 .setCertificateId(diamond.getCertificateId() != null ? diamond.getCertificateId() : 0L)
                 .setOwnerId(diamond.getOwnerId() != null ? diamond.getOwnerId() : 0L)
-                .setStatus(diamond.getStatus())
+                .setStatus(diamond.getStatus() != null ? diamond.getStatus() : "")
                 .build();
     }
 }

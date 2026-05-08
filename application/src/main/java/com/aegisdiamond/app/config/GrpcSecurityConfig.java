@@ -22,12 +22,10 @@ public class GrpcSecurityConfig {
     @Bean
     public GrpcAuthenticationReader grpcAuthenticationReader() {
         return (call, headers) -> {
+            // gRPC Metadata keys are case-insensitive and normalized to lowercase
             String authHeader = headers.get(Metadata.Key.of("authorization", Metadata.ASCII_STRING_MARSHALLER));
-            if (authHeader == null) {
-                authHeader = headers.get(Metadata.Key.of("Authorization", Metadata.ASCII_STRING_MARSHALLER));
-            }
 
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            if (authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
                 String jwt = authHeader.substring(7);
                 try {
                     String username = jwtUtil.extractUsername(jwt);
@@ -37,7 +35,7 @@ public class GrpcSecurityConfig {
                                 Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
                     }
                 } catch (Exception e) {
-                    // Invalid token
+                    // Invalid token or processing error
                 }
             }
             return null;

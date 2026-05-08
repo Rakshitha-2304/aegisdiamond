@@ -49,17 +49,18 @@ public class DiamondServiceRequirementTest {
                 .setClarity("VVS1")
                 .setColor("D")
                 .setCarat(1.5)
-                .setCertificateId(9999L) // This certificate already exists
+                .setCertificateId(9999L)
                 .build();
 
         when(diamondRepository.findByCertificateId(9999L)).thenReturn(Optional.of(new Diamond()));
+        
+        // Act
+        diamondGrpcService.registerDiamond(request, responseObserver);
 
-        // Act & Assert
-        StatusRuntimeException exception = assertThrows(StatusRuntimeException.class, () -> {
-            diamondGrpcService.registerDiamond(request, responseObserver);
-        });
-
-        assertEquals(Status.Code.ALREADY_EXISTS, exception.getStatus().getCode());
+        // Assert
+        ArgumentCaptor<StatusRuntimeException> captor = ArgumentCaptor.forClass(StatusRuntimeException.class);
+        verify(responseObserver).onError(captor.capture());
+        assertEquals(Status.Code.ALREADY_EXISTS, captor.getValue().getStatus().getCode());
         verify(diamondRepository, never()).save(any());
     }
 
@@ -71,16 +72,17 @@ public class DiamondServiceRequirementTest {
                 .setCut("") // Missing cut
                 .setClarity("VVS1")
                 .setColor("D")
-                .setCarat(0.0) // Invalid carat
+                .setCarat(0.0)
                 .setCertificateId(1001L)
                 .build();
+        
+        // Act
+        diamondGrpcService.registerDiamond(request, responseObserver);
 
-        // Act & Assert
-        StatusRuntimeException exception = assertThrows(StatusRuntimeException.class, () -> {
-            diamondGrpcService.registerDiamond(request, responseObserver);
-        });
-
-        assertEquals(Status.Code.INVALID_ARGUMENT, exception.getStatus().getCode());
+        // Assert
+        ArgumentCaptor<StatusRuntimeException> captor = ArgumentCaptor.forClass(StatusRuntimeException.class);
+        verify(responseObserver).onError(captor.capture());
+        assertEquals(Status.Code.INVALID_ARGUMENT, captor.getValue().getStatus().getCode());
         verify(diamondRepository, never()).save(any());
     }
 

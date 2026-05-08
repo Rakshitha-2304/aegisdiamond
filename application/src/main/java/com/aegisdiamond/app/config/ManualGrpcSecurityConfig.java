@@ -2,11 +2,11 @@ package com.aegisdiamond.app.config;
 
 import net.devh.boot.grpc.server.interceptor.GrpcGlobalServerInterceptor;
 import net.devh.boot.grpc.server.security.authentication.GrpcAuthenticationReader;
-import net.devh.boot.grpc.server.security.interceptors.ExceptionTranslatingServerInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,7 +31,28 @@ public class ManualGrpcSecurityConfig {
                 
                 Authentication auth = grpcAuthenticationReader.readAuthentication(call, headers);
                 
-                return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(next.startCall(call, headers)) {
+                if (auth != null) {
+                    System.out.println("DEBUG: Authenticated user: " + auth.getName() + " with roles: " + auth.getAuthorities());
+                } else {
+                    System.out.println("DEBUG: No authentication found in gRPC headers");
+                }
+
+                // Create a wrapper for the listener to propagate the security context
+                ServerCall.Listener<ReqT> listener;
+                
+                SecurityContext context = SecurityContextHolder.createEmptyContext();
+                context.setAuthentication(auth);
+                
+                // Set context for the initial startCall
+                SecurityContext oldContext = SecurityContextHolder.getContext();
+                SecurityContextHolder.setContext(context);
+                try {
+                    listener = next.startCall(call, headers);
+                } finally {
+                    SecurityContextHolder.setContext(oldContext);
+                }
+
+                return new ForwardingServerCallListener.SimpleForwardingServerCallListener<ReqT>(listener) {
                     @Override
                     public void onMessage(ReqT message) {
                         runWithContext(() -> super.onMessage(message));
@@ -58,26 +79,22 @@ public class ManualGrpcSecurityConfig {
                     }
 
                     private void runWithContext(Runnable r) {
-                        if (auth != null) {
-                            SecurityContext context = SecurityContextHolder.createEmptyContext();
-                            context.setAuthentication(auth);
-                            SecurityContextHolder.setContext(context);
-                        }
+                        SecurityContext previousContext = SecurityContextHolder.getContext();
+                        SecurityContextHolder.setContext(context);
                         try {
                             r.run();
+                        } catch (AccessDeniedException e) {
+                            System.out.println("DEBUG: Access Denied: " + e.getMessage());
+                            call.close(Status.PERMISSION_DENIED.withDescription(e.getMessage()).withCause(e), new Metadata());
+                        } catch (Exception e) {
+                            System.out.println("DEBUG: Unexpected Error in gRPC call: " + e.getMessage());
+                            throw e;
                         } finally {
-                            SecurityContextHolder.clearContext();
+                            SecurityContextHolder.setContext(previousContext);
                         }
                     }
                 };
             }
         };
-    }
-
-    @Bean
-    @GrpcGlobalServerInterceptor
-    @Order(5)
-    public ServerInterceptor exceptionTranslatingServerInterceptor() {
-        return new ExceptionTranslatingServerInterceptor();
     }
 }
