@@ -20,7 +20,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     private AiRiskEngine aiRiskEngine;
 
     @Override
-    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
+    @PreAuthorize("hasAnyAuthority('shipper', 'insurance_agent')")
     public void calculateRiskScore(RiskRequest request, StreamObserver<RiskResponse> responseObserver) {
         // Mock route risk for formula
         double routeRisk = request.getRoute().contains("High-Risk") ? 0.9 : 0.2;
@@ -35,7 +35,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
+    @PreAuthorize("hasAnyAuthority('shipper', 'insurance_agent')")
     public void analyzeShipmentRisk(RiskRequest request, StreamObserver<RiskResponse> responseObserver) {
         double routeRisk = request.getRoute().contains("High-Risk") ? 0.9 : 0.2;
         double score = aiRiskEngine.calculateFormulaicRisk(request.getShipmentValue(), routeRisk, request.getHistoricalRisk());
@@ -51,7 +51,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasRole('INSURANCE_AGENT')")
+    @PreAuthorize("hasAuthority('insurance_agent')")
     public void detectAnomalies(AnomalyRequest request, StreamObserver<AnomalyResponse> responseObserver) {
         String analysis = aiRiskEngine.detectAnomalies(request.getShipmentId(), request.getCurrentData());
         boolean isAnomaly = analysis.contains("ANOMALY DETECTED");
@@ -65,7 +65,7 @@ public class RiskGrpcService extends RiskServiceGrpc.RiskServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper', 'insurance_agent', 'customs_officer')")
     public void getRiskInsights(RiskRequest request, StreamObserver<InsightResponse> responseObserver) {
         List<RiskAssessment> history = riskRepository.findByShipmentIdOrderByAssessedAtDesc(request.getShipmentId());
         

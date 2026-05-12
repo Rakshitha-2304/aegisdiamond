@@ -18,7 +18,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     private DiamondRepository diamondRepository;
 
     @Override
-    @PreAuthorize("hasRole('SUPPLIER')")
+    @PreAuthorize("hasAuthority('supplier')")
     public void registerDiamond(DiamondRequest request, StreamObserver<DiamondResponse> responseObserver) {
         // Requirement: 4Cs (cut, clarity, color, carat) mandatory
         if (request.getCut().isEmpty() || request.getClarity().isEmpty() || 
@@ -29,10 +29,11 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
             return;
         }
 
-        // Requirement: Unique certificate ID required
-        if (diamondRepository.findByCertificateId(request.getCertificateId()).isPresent()) {
+        // Requirement: Unique certificate ID required if provided
+        Long certId = request.getCertificateId() > 0 ? request.getCertificateId() : null;
+        if (certId != null && diamondRepository.findByCertificateId(certId).isPresent()) {
             responseObserver.onError(io.grpc.Status.ALREADY_EXISTS
-                    .withDescription("Diamond with certificate ID " + request.getCertificateId() + " already exists")
+                    .withDescription("Diamond with certificate ID " + certId + " already exists")
                     .asRuntimeException());
             return;
         }
@@ -42,9 +43,9 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
         diamond.setClarity(request.getClarity());
         diamond.setColor(request.getColor());
         diamond.setCarat(request.getCarat());
-        diamond.setCertificateId(request.getCertificateId());
+        diamond.setCertificateId(certId);
         diamond.setOwnerId(request.getOwnerId());
-        diamond.setStatus("REGISTERED");
+        diamond.setStatus(certId != null ? "CERTIFIED" : "REGISTERED");
 
         Diamond saved = diamondRepository.save(diamond);
         responseObserver.onNext(mapToResponse(saved));
@@ -52,13 +53,32 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasRole('SUPPLIER')")
+    @PreAuthorize("hasAuthority('supplier')")
     public void updateDiamondDetails(DiamondRequest request, StreamObserver<DiamondResponse> responseObserver) {
         diamondRepository.findById(request.getId()).ifPresentOrElse(diamond -> {
+            boolean isCertified = diamond.getCertificateId() != null && diamond.getCertificateId() > 0;
+            
+            if (isCertified) {
+                // Check if certified attributes are being changed
+                if (!diamond.getCut().equals(request.getCut()) ||
+                    !diamond.getClarity().equals(request.getClarity()) ||
+                    !diamond.getColor().equals(request.getColor()) ||
+                    diamond.getCarat() != request.getCarat()) {
+                    
+                    responseObserver.onError(io.grpc.Status.FAILED_PRECONDITION
+                            .withDescription("Certified attributes (Cut, Clarity, Color, Carat) cannot be modified after a certificate is linked.")
+                            .asRuntimeException());
+                    return;
+                }
+            }
+
             diamond.setCut(request.getCut());
             diamond.setClarity(request.getClarity());
             diamond.setColor(request.getColor());
             diamond.setCarat(request.getCarat());
+            // ownerId is not a certified attribute, so it can be updated
+            diamond.setOwnerId(request.getOwnerId());
+            
             Diamond saved = diamondRepository.save(diamond);
             responseObserver.onNext(mapToResponse(saved));
             responseObserver.onCompleted();
@@ -68,7 +88,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('admin')")
     public void verifyCertification(CertificateRequest request, StreamObserver<CertificateResponse> responseObserver) {
         boolean isValid = diamondRepository.findByCertificateId(request.getCertificateId()).isPresent();
         responseObserver.onNext(CertificateResponse.newBuilder()
@@ -80,10 +100,20 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasRole('SUPPLIER')")
+    @PreAuthorize("hasAuthority('supplier')")
     public void linkCertificate(LinkCertificateRequest request, StreamObserver<DiamondResponse> responseObserver) {
         diamondRepository.findById(request.getDiamondId()).ifPresentOrElse(diamond -> {
-            diamond.setCertificateId(request.getCertificateId());
+            Long certId = request.getCertificateId();
+            
+            // Check if certificate ID is already in use by another diamond
+            if (diamondRepository.findByCertificateId(certId).isPresent()) {
+                 responseObserver.onError(io.grpc.Status.ALREADY_EXISTS
+                        .withDescription("Certificate ID " + certId + " is already linked to another diamond")
+                        .asRuntimeException());
+                return;
+            }
+
+            diamond.setCertificateId(certId);
             diamond.setStatus("CERTIFIED");
             Diamond saved = diamondRepository.save(diamond);
             responseObserver.onNext(mapToResponse(saved));
@@ -94,7 +124,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'VAULT_MANAGER', 'INSURANCE_AGENT')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper', 'vault_manager', 'insurance_agent')")
     public void getDiamondById(DiamondIdRequest request, StreamObserver<DiamondResponse> responseObserver) {
         diamondRepository.findById(request.getId()).ifPresentOrElse(diamond -> {
             responseObserver.onNext(mapToResponse(diamond));
@@ -105,7 +135,7 @@ public class DiamondGrpcService extends DiamondServiceGrpc.DiamondServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper')")
     public void searchDiamonds(SearchRequest request, StreamObserver<SearchResponse> responseObserver) {
         List<Diamond> diamonds = diamondRepository.findByCutContainingOrClarityContainingOrColorContaining(
                 request.getQuery(), request.getQuery(), request.getQuery());

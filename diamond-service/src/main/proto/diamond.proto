@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package com.aegisdiamond.diamond;
 
+import "validate/validate.proto";
+
 option java_multiple_files = true;
 option java_package = "com.aegisdiamond.diamond.grpc";
 option java_outer_classname = "DiamondProto";
@@ -17,10 +19,10 @@ service DiamondService {
 
 message DiamondRequest {
   int64 id = 1;
-  string cut = 2;
-  string clarity = 3;
-  string color = 4;
-  double carat = 5;
+  string cut = 2 [(validate.rules).string = {in: ["Round", "Princess", "Emerald", "Asscher", "Cushion", "Radiant", "Pear", "Oval", "Marquise", "Heart"]}];
+  string clarity = 3 [(validate.rules).string = {in: ["FL", "IF", "VVS1", "VVS2", "VS1", "VS2", "SI1", "SI2", "I1", "I2", "I3"]}];
+  string color = 4 [(validate.rules).string = {pattern: "^[D-Z]$"}];
+  double carat = 5 [(validate.rules).double = {gt: 0}];
   int64 certificateId = 6;
   int64 ownerId = 7;
   }
@@ -36,12 +38,12 @@ message DiamondRequest {
   string status = 8;
   }
   message CertificateRequest {
-  int64 certificateId = 1;
+  int64 certificateId = 1 [(validate.rules).int64 = {gt: 0}];
   }
 
   message LinkCertificateRequest {
-  int64 diamondId = 1;
-  int64 certificateId = 2;
+  int64 diamondId = 1 [(validate.rules).int64 = {gt: 0}];
+  int64 certificateId = 2 [(validate.rules).int64 = {gt: 0}];
   }
 
 message CertificateResponse {
@@ -53,11 +55,11 @@ message CertificateResponse {
 }
 
 message DiamondIdRequest {
-  int64 id = 1;
+  int64 id = 1 [(validate.rules).int64 = {gt: 0}];
 }
 
 message SearchRequest {
-  string query = 1;
+  string query = 1 [(validate.rules).string = {min_len: 1}];
 }
 
 message SearchResponse {

@@ -22,7 +22,7 @@ public class Diamond {
     @Column(nullable = false)
     private double carat;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = true)
     private Long certificateId;
 
     private Long ownerId;

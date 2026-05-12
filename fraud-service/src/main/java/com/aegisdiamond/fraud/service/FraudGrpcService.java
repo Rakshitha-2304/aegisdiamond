@@ -21,7 +21,7 @@ public class FraudGrpcService extends FraudServiceGrpc.FraudServiceImplBase {
     private AiFraudEngine aiFraudEngine;
 
     @Override
-    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
+    @PreAuthorize("hasAnyAuthority('shipper', 'insurance_agent')")
     public void detectTampering(TamperRequest request, StreamObserver<FraudResponse> responseObserver) {
         boolean isTampered = !request.getCurrentSealState().equalsIgnoreCase("INTACT");
         
@@ -39,7 +39,7 @@ public class FraudGrpcService extends FraudServiceGrpc.FraudServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasRole('INSURANCE_AGENT')")
+    @PreAuthorize("hasAuthority('insurance_agent')")
     public void analyzeFraudPatterns(FraudRequest request, StreamObserver<FraudResponse> responseObserver) {
         String analysis = aiFraudEngine.analyzePatterns(request.getShipmentId(), request.getPayload());
         boolean isFraud = analysis.contains("FRAUD DETECTED");
@@ -59,14 +59,14 @@ public class FraudGrpcService extends FraudServiceGrpc.FraudServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
+    @PreAuthorize("hasAnyAuthority('insurance_agent', 'customs_officer')")
     public void flagSuspiciousShipments(FraudRequest request, StreamObserver<FraudResponse> responseObserver) {
         // High-level wrapper for AI flagging
         analyzeFraudPatterns(request, responseObserver);
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
+    @PreAuthorize("hasAnyAuthority('insurance_agent', 'customs_officer')")
     public void getFraudReports(ShipmentIdRequest request, StreamObserver<FraudReportListResponse> responseObserver) {
         List<FraudIncident> incidents = fraudRepository.findByShipmentIdOrderByDetectedAtDesc(request.getShipmentId());
         

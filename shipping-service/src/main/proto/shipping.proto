@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package com.aegisdiamond.shipping;
 
+import "validate/validate.proto";
+
 option java_multiple_files = true;
 option java_package = "com.aegisdiamond.shipping.grpc";
 option java_outer_classname = "ShippingProto";
@@ -17,10 +19,10 @@ service ShippingService {
 
 message ShipmentRequest {
   int64 id = 1;
-  string origin = 2;
-  string destination = 3;
-  repeated int64 diamondIds = 4;
-  int64 shipperId = 5;
+  string origin = 2 [(validate.rules).string = {min_len: 2, max_len: 100}];
+  string destination = 3 [(validate.rules).string = {min_len: 2, max_len: 100}];
+  repeated int64 diamondIds = 4 [(validate.rules).repeated = {min_items: 1}];
+  int64 shipperId = 5 [(validate.rules).int64 = {gt: 0}];
 }
 
 message ShipmentResponse {
@@ -35,17 +37,17 @@ message ShipmentResponse {
 }
 
 message ContainerRequest {
-  int64 shipmentId = 1;
-  string containerId = 2;
+  int64 shipmentId = 1 [(validate.rules).int64 = {gt: 0}];
+  string containerId = 2 [(validate.rules).string = {min_len: 3}];
 }
 
 message SealRequest {
-  int64 shipmentId = 1;
-  string sealId = 2;
+  int64 shipmentId = 1 [(validate.rules).int64 = {gt: 0}];
+  string sealId = 2 [(validate.rules).string = {min_len: 3}];
 }
 
 message SecurityRequest {
-  int64 shipmentId = 1;
+  int64 shipmentId = 1 [(validate.rules).int64 = {gt: 0}];
 }
 
 message SecurityResponse {
@@ -54,5 +56,5 @@ message SecurityResponse {
 }
 
 message ShipmentIdRequest {
-  int64 id = 1;
+  int64 id = 1 [(validate.rules).int64 = {gt: 0}];
 }

@@ -28,6 +28,13 @@ subprojects {
 			mavenBom "org.springframework.ai:spring-ai-bom:2.0.0-M5"
 		}
 	}
+
+    // Common dependencies for services
+    if (project.name != 'application') {
+        dependencies {
+            implementation 'io.envoyproxy.protoc-gen-validate:pgv-java-stub:0.6.13'
+        }
+    }
 }
 
 dependencies {

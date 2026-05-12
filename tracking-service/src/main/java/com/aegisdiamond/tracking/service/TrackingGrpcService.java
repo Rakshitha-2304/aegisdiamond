@@ -23,7 +23,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     private static final double MAX_ALLOWED_DEVIATION_KM = 50.0; // Example threshold
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void updateLocation(LocationRequest request, StreamObserver<TrackingResponse> responseObserver) {
         TrackingRecord record = new TrackingRecord();
         record.setShipmentId(request.getShipmentId());
@@ -37,7 +37,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'CUSTOMS_OFFICER', 'INSURANCE_AGENT')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper', 'customs_officer', 'insurance_agent')")
     public void getCurrentLocation(ShipmentIdRequest request, StreamObserver<TrackingResponse> responseObserver) {
         trackingRepository.findFirstByShipmentIdOrderByTimestampDesc(request.getId()).ifPresentOrElse(record -> {
             responseObserver.onNext(mapToResponse(record));
@@ -48,7 +48,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void getTrackingHistory(ShipmentIdRequest request, StreamObserver<TrackingHistoryResponse> responseObserver) {
         List<TrackingRecord> history = trackingRepository.findByShipmentIdOrderByTimestampDesc(request.getId());
         TrackingHistoryResponse response = TrackingHistoryResponse.newBuilder()
@@ -60,7 +60,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SHIPPER', 'INSURANCE_AGENT')")
+    @PreAuthorize("hasAnyAuthority('shipper', 'insurance_agent')")
     public void detectRouteDeviation(ShipmentIdRequest request, StreamObserver<DeviationResponse> responseObserver) {
         trackingRepository.findFirstByShipmentIdOrderByTimestampDesc(request.getId()).ifPresentOrElse(record -> {
             // Mock expected route check
@@ -82,7 +82,7 @@ public class TrackingGrpcService extends TrackingServiceGrpc.TrackingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void calculateETA(ShipmentIdRequest request, StreamObserver<ETAResponse> responseObserver) {
         trackingRepository.findFirstByShipmentIdOrderByTimestampDesc(request.getId()).ifPresentOrElse(record -> {
             // Simple mock ETA calculation

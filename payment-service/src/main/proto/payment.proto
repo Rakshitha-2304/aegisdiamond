@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package com.aegisdiamond.payment;
 
+import "validate/validate.proto";
+
 option java_multiple_files = true;
 option java_package = "com.aegisdiamond.payment.grpc";
 option java_outer_classname = "PaymentProto";
@@ -15,11 +17,11 @@ service PaymentService {
 }
 
 message PaymentRequest {
-  int64 shipmentId = 1;
-  double amount = 2;
-  string currency = 3;
-  int64 payerId = 4;
-  int64 payeeId = 5;
+  int64 shipmentId = 1 [(validate.rules).int64 = {gt: 0}];
+  double amount = 2 [(validate.rules).double = {gt: 0}];
+  string currency = 3 [(validate.rules).string = {len: 3}];
+  int64 payerId = 4 [(validate.rules).int64 = {gt: 0}];
+  int64 payeeId = 5 [(validate.rules).int64 = {gt: 0}];
   bool useEscrow = 6;
 }
 
@@ -31,9 +33,9 @@ message PaymentResponse {
 }
 
 message ConfirmRequest {
-  int64 transactionId = 1;
+  int64 transactionId = 1 [(validate.rules).int64 = {gt: 0}];
 }
 
 message TransactionIdRequest {
-  int64 id = 1;
+  int64 id = 1 [(validate.rules).int64 = {gt: 0}];
 }

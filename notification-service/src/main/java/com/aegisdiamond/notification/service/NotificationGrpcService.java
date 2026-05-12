@@ -22,7 +22,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     private AlertDispatcher alertDispatcher;
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void sendSecurityAlert(AlertRequest request, StreamObserver<NotificationResponse> responseObserver) {
         Notification notification = new Notification();
         notification.setShipmentId(request.getShipmentId());
@@ -41,7 +41,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void sendShipmentUpdate(UpdateRequest request, StreamObserver<NotificationResponse> responseObserver) {
         Notification notification = new Notification();
         notification.setShipmentId(request.getShipmentId());
@@ -60,7 +60,7 @@ public class NotificationGrpcService extends NotificationServiceGrpc.Notificatio
     }
 
     @Override
-    @PreAuthorize("hasRole('INSURANCE_AGENT')")
+    @PreAuthorize("hasAuthority('insurance_agent')")
     public void sendRiskAlert(AlertRequest request, StreamObserver<NotificationResponse> responseObserver) {
         Notification notification = new Notification();
         notification.setShipmentId(request.getShipmentId());

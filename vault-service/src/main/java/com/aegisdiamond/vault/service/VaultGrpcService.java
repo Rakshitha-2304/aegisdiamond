@@ -18,7 +18,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     private GeoSecurityService geoSecurityService;
 
     @Override
-    @PreAuthorize("hasRole('VAULT_MANAGER')")
+    @PreAuthorize("hasAuthority('vault_manager')")
     public void registerVault(VaultRequest request, StreamObserver<VaultResponse> responseObserver) {
         Vault vault = new Vault();
         vault.setLocation(request.getLocation());
@@ -37,7 +37,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasRole('VAULT_MANAGER')")
+    @PreAuthorize("hasAuthority('vault_manager')")
     public void storeDiamond(StorageRequest request, StreamObserver<VaultResponse> responseObserver) {
         vaultRepository.findById(request.getVaultId()).ifPresentOrElse(vault -> {
             // Security Checks
@@ -72,7 +72,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasRole('VAULT_MANAGER')")
+    @PreAuthorize("hasAuthority('vault_manager')")
     public void retrieveDiamond(StorageRequest request, StreamObserver<VaultResponse> responseObserver) {
         vaultRepository.findById(request.getVaultId()).ifPresentOrElse(vault -> {
             if (!mockMfaCheck(request.getMfaCode())) {
@@ -100,7 +100,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasRole('VAULT_MANAGER')")
+    @PreAuthorize("hasAuthority('vault_manager')")
     public void transferBetweenVaults(TransferRequest request, StreamObserver<VaultResponse> responseObserver) {
         Vault source = vaultRepository.findById(request.getSourceVaultId()).orElse(null);
         Vault destination = vaultRepository.findById(request.getDestinationVaultId()).orElse(null);
@@ -135,7 +135,7 @@ public class VaultGrpcService extends VaultServiceGrpc.VaultServiceImplBase {
     }
 
     @Override
-    @PreAuthorize("hasRole('VAULT_MANAGER')")
+    @PreAuthorize("hasAuthority('vault_manager')")
     public void getVaultInventory(VaultIdRequest request, StreamObserver<InventoryResponse> responseObserver) {
         vaultRepository.findById(request.getId()).ifPresentOrElse(vault -> {
             responseObserver.onNext(InventoryResponse.newBuilder()

@@ -26,12 +26,12 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void register(RegisterRequest request, StreamObserver<AuthResponse> responseObserver) {
+        if ("admin".equalsIgnoreCase(request.getRole())) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Registration as 'admin' is not allowed.");
+        }
+
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            responseObserver.onNext(AuthResponse.newBuilder()
-                    .setMessage("Username already exists")
-                    .build());
-            responseObserver.onCompleted();
-            return;
+            throw new com.aegisdiamond.auth.exception.UserAlreadyExistsException("Username already exists: " + request.getUsername());
         }
 
         User user = new User();
@@ -67,12 +67,10 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                     .setRole(user.getRole())
                     .setMessage("Login successful")
                     .build());
+            responseObserver.onCompleted();
         } else {
-            responseObserver.onNext(AuthResponse.newBuilder()
-                    .setMessage("Invalid username or password")
-                    .build());
+            throw new com.aegisdiamond.auth.exception.InvalidCredentialsException("Invalid username or password");
         }
-        responseObserver.onCompleted();
     }
 
     @Override

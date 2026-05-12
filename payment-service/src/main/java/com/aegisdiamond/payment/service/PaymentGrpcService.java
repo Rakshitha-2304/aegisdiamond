@@ -20,7 +20,7 @@ public class PaymentGrpcService extends PaymentServiceGrpc.PaymentServiceImplBas
     private static final double ESCROW_THRESHOLD = 100000.0;
 
     @Override
-    @PreAuthorize("hasRole('SUPPLIER')")
+    @PreAuthorize("hasAuthority('supplier')")
     public void initiatePayment(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
         Transaction transaction = new Transaction();
         transaction.setShipmentId(request.getShipmentId());
@@ -39,7 +39,7 @@ public class PaymentGrpcService extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void confirmPayment(ConfirmRequest request, StreamObserver<PaymentResponse> responseObserver) {
         transactionRepository.findById(request.getTransactionId()).ifPresentOrElse(transaction -> {
             if (transaction.getStatus().equals("CONFIRMED") || transaction.getStatus().equals("RELEASED")) {
@@ -57,7 +57,7 @@ public class PaymentGrpcService extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('admin')")
     public void processEscrow(PaymentRequest request, StreamObserver<PaymentResponse> responseObserver) {
         Transaction transaction = new Transaction();
         transaction.setShipmentId(request.getShipmentId());
@@ -74,7 +74,7 @@ public class PaymentGrpcService extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('admin')")
     public void releaseFunds(ConfirmRequest request, StreamObserver<PaymentResponse> responseObserver) {
         transactionRepository.findById(request.getTransactionId()).ifPresentOrElse(transaction -> {
             if (!transaction.isUseEscrow()) {
@@ -99,7 +99,7 @@ public class PaymentGrpcService extends PaymentServiceGrpc.PaymentServiceImplBas
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper')")
     public void getTransactionDetails(TransactionIdRequest request, StreamObserver<PaymentResponse> responseObserver) {
         transactionRepository.findById(request.getId()).ifPresentOrElse(transaction -> {
             responseObserver.onNext(mapToResponse(transaction, "Details retrieved."));

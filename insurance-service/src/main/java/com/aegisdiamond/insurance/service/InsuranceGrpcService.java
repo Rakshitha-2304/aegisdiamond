@@ -23,7 +23,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     private ValuationService valuationService;
 
     @Override
-    @PreAuthorize("hasRole('INSURANCE_AGENT')")
+    @PreAuthorize("hasAuthority('insurance_agent')")
     public void calculateDiamondValue(ValuationRequest request, StreamObserver<ValuationResponse> responseObserver) {
         double value = valuationService.calculateDiamondValue(request.getBasePrice(), request.getCarat(), request.getQualityMultiplier());
         
@@ -36,7 +36,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     }
 
     @Override
-    @PreAuthorize("hasRole('INSURANCE_AGENT')")
+    @PreAuthorize("hasAuthority('insurance_agent')")
     public void createInsurancePolicy(PolicyRequest request, StreamObserver<PolicyResponse> responseObserver) {
         InsurancePolicy policy = insuranceRepository.findByShipmentId(request.getShipmentId())
                 .orElse(new InsurancePolicy());
@@ -52,7 +52,7 @@ public class InsuranceGrpcService extends InsuranceServiceGrpc.InsuranceServiceI
     }
 
     @Override
-    @PreAuthorize("hasRole('INSURANCE_AGENT')")
+    @PreAuthorize("hasAuthority('insurance_agent')")
     public void updateInsuranceCoverage(PolicyRequest request, StreamObserver<PolicyResponse> responseObserver) {
         insuranceRepository.findByShipmentId(request.getShipmentId()).ifPresentOrElse(policy -> {
             policy.setCoverageAmount(request.getCoverageAmount());

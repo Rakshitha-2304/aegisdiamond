@@ -17,7 +17,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     private ShipmentRepository shipmentRepository;
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper')")
     public void createShipment(ShipmentRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         Shipment shipment = new Shipment();
         shipment.setOrigin(request.getOrigin());
@@ -33,7 +33,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
 
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void updateShipmentDetails(ShipmentRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getId()).ifPresentOrElse(shipment -> {
             if (shipment.isSealed()) {
@@ -54,7 +54,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void assignSecureContainer(ContainerRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getShipmentId()).ifPresentOrElse(shipment -> {
             shipment.setContainerId(request.getContainerId());
@@ -68,7 +68,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void sealShipment(SealRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getShipmentId()).ifPresentOrElse(shipment -> {
             shipment.setSealId(request.getSealId());
@@ -83,7 +83,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasRole('SHIPPER')")
+    @PreAuthorize("hasAuthority('shipper')")
     public void validateShipmentSecurity(SecurityRequest request, StreamObserver<SecurityResponse> responseObserver) {
         shipmentRepository.findById(request.getShipmentId()).ifPresentOrElse(shipment -> {
             boolean isValid = shipment.isSealed() && shipment.getContainerId() != null && !shipment.getContainerId().isEmpty();
@@ -98,7 +98,7 @@ public class ShippingGrpcService extends ShippingServiceGrpc.ShippingServiceImpl
     }
 
     @Override
-    @PreAuthorize("hasAnyRole('SUPPLIER', 'SHIPPER', 'INSURANCE_AGENT', 'CUSTOMS_OFFICER')")
+    @PreAuthorize("hasAnyAuthority('supplier', 'shipper', 'insurance_agent', 'customs_officer')")
     public void getShipmentDetails(ShipmentIdRequest request, StreamObserver<ShipmentResponse> responseObserver) {
         shipmentRepository.findById(request.getId()).ifPresentOrElse(shipment -> {
             responseObserver.onNext(mapToResponse(shipment));

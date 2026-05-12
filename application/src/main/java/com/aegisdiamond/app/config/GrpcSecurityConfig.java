@@ -32,7 +32,7 @@ public class GrpcSecurityConfig {
                     if (username != null && jwtUtil.validateToken(jwt, username)) {
                         String role = jwtUtil.extractRole(jwt);
                         return new UsernamePasswordAuthenticationToken(username, null,
-                                Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + role)));
+                                Collections.singletonList(new SimpleGrantedAuthority(role)));
                     }
                 } catch (Exception e) {
                     // Invalid token or processing error
