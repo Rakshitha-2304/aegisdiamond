@@ -26,6 +26,9 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void register(RegisterRequest request, StreamObserver<AuthResponse> responseObserver) {
+        // Detailed Validation
+        validateRegistrationRequest(request);
+
         if ("admin".equalsIgnoreCase(request.getRole())) {
             throw new com.aegisdiamond.auth.exception.ValidationException("Registration as 'admin' is not allowed.");
         }
@@ -51,6 +54,33 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                 .setMessage("User registered successfully")
                 .build());
         responseObserver.onCompleted();
+    }
+
+    private void validateRegistrationRequest(RegisterRequest request) {
+        String password = request.getPassword();
+        String email = request.getEmail();
+
+        // Password Validation: At least 8 characters, capital, small, number, special char
+        if (password.length() < 8) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Password must be at least 8 characters long.");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Password must contain at least one uppercase letter.");
+        }
+        if (!password.matches(".*[a-z].*")) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Password must contain at least one lowercase letter.");
+        }
+        if (!password.matches(".*[0-9].*")) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Password must contain at least one number.");
+        }
+        if (!password.matches(".*[!@#$%^&*()_+\\-={}\\[\\]|\\\\:;\"'<>,.?/~`].*")) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Password must contain at least one special character.");
+        }
+
+        // Email Validation: user@domain.com
+        if (!email.matches("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}$")) {
+            throw new com.aegisdiamond.auth.exception.ValidationException("Invalid email format. Must be user@domain.com");
+        }
     }
 
     @Override
