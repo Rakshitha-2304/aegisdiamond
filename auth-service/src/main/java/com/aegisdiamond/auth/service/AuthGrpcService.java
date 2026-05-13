@@ -6,6 +6,8 @@ import com.aegisdiamond.auth.repository.UserRepository;
 import com.aegisdiamond.auth.util.JwtUtil;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
@@ -14,6 +16,8 @@ import java.util.Optional;
 @GrpcService
 @jakarta.annotation.security.PermitAll
 public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthGrpcService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -26,14 +30,17 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void register(RegisterRequest request, StreamObserver<AuthResponse> responseObserver) {
+        logger.info("Registering user: {}", request.getUsername());
         // Detailed Validation
         validateRegistrationRequest(request);
 
         if ("admin".equalsIgnoreCase(request.getRole())) {
+            logger.warn("Registration attempt as 'admin' rejected for user: {}", request.getUsername());
             throw new com.aegisdiamond.auth.exception.ValidationException("Registration as 'admin' is not allowed.");
         }
 
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
+            logger.warn("Registration failed: Username {} already exists", request.getUsername());
             throw new com.aegisdiamond.auth.exception.UserAlreadyExistsException("Username already exists: " + request.getUsername());
         }
 
@@ -44,6 +51,7 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
         user.setRole(request.getRole());
 
         userRepository.save(user);
+        logger.info("User {} registered successfully", user.getUsername());
 
         String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
@@ -85,10 +93,12 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
 
     @Override
     public void login(LoginRequest request, StreamObserver<AuthResponse> responseObserver) {
+        logger.info("Login attempt for user: {}", request.getUsername());
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
 
         if (userOpt.isPresent() && passwordEncoder.matches(request.getPassword(), userOpt.get().getPassword())) {
             User user = userOpt.get();
+            logger.info("Login successful for user: {}", user.getUsername());
             String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
 
             responseObserver.onNext(AuthResponse.newBuilder()
@@ -99,6 +109,7 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                     .build());
             responseObserver.onCompleted();
         } else {
+            logger.warn("Login failed for user: {}", request.getUsername());
             throw new com.aegisdiamond.auth.exception.InvalidCredentialsException("Invalid username or password");
         }
     }
@@ -111,6 +122,7 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
             String role = jwtUtil.extractRole(token);
 
             boolean isValid = jwtUtil.validateToken(token, username);
+            logger.debug("Token validation for user {}: {}", username, isValid);
 
             responseObserver.onNext(ValidateResponse.newBuilder()
                     .setIsValid(isValid)
@@ -118,6 +130,7 @@ public class AuthGrpcService extends AuthServiceGrpc.AuthServiceImplBase {
                     .setRole(role)
                     .build());
         } catch (Exception e) {
+            logger.error("Token validation failed: {}", e.getMessage());
             responseObserver.onNext(ValidateResponse.newBuilder()
                     .setIsValid(false)
                     .build());

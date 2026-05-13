@@ -1,5 +1,7 @@
 package com.aegisdiamond.fraud.service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -7,11 +9,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class AiFraudEngine {
 
+    private static final Logger logger = LoggerFactory.getLogger(AiFraudEngine.class);
+
     @Autowired(required = false)
     private ChatModel chatModel;
 
     public String analyzePatterns(Long shipmentId, String payload) {
+        logger.info("Analyzing fraud patterns for shipment ID: {}", shipmentId);
         if (chatModel == null) {
+            logger.warn("ChatModel is null, returning default fraud analysis for shipment ID: {}", shipmentId);
             return "AI Fraud Analysis unavailable. Standard pattern matching indicates normal activity.";
         }
 
@@ -22,10 +28,16 @@ public class AiFraudEngine {
             shipmentId, payload
         );
 
-        return chatModel.call(promptText);
+        try {
+            return chatModel.call(promptText);
+        } catch (Exception e) {
+            logger.error("Error in AI fraud analysis for shipment ID {}: {}", shipmentId, e.getMessage());
+            return "Error in fraud analysis.";
+        }
     }
 
     public double calculateFraudProbability(String analysis) {
+        logger.debug("Calculating fraud probability from analysis: {}", analysis);
         if (analysis.contains("FRAUD DETECTED")) {
             return 0.95;
         } else if (analysis.contains("SUSPICIOUS")) {

@@ -5,6 +5,8 @@ import com.aegisdiamond.customs.grpc.*;
 import com.aegisdiamond.customs.repository.CustomsRepository;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 
@@ -12,6 +14,8 @@ import java.time.LocalDateTime;
 
 @GrpcService
 public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBase {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomsGrpcService.class);
 
     @Autowired
     private CustomsRepository customsRepository;
@@ -22,8 +26,11 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     @Override
     @PreAuthorize("hasAuthority('customs_officer')")
     public void validateCustomsDocuments(CustomsRequest request, StreamObserver<CustomsResponse> responseObserver) {
+        logger.info("Validating customs documents for shipment ID {}: origin={}, destination={}", 
+                request.getShipmentId(), request.getOriginCountry(), request.getDestinationCountry());
         boolean isValid = complianceEngine.validateDocuments(request.getOriginCountry(), request.getDestinationCountry(), request.getDocumentIdsList());
         
+        logger.info("Customs validation for shipment ID {}: {}", request.getShipmentId(), isValid ? "PASSED" : "FAILED");
         responseObserver.onNext(CustomsResponse.newBuilder()
                 .setShipmentId(request.getShipmentId())
                 .setIsCompliant(isValid)
@@ -36,6 +43,7 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     @Override
     @PreAuthorize("hasAnyAuthority('shipper', 'customs_officer')")
     public void submitCustomsDeclaration(CustomsRequest request, StreamObserver<CustomsResponse> responseObserver) {
+        logger.info("Submitting customs declaration for shipment ID {}: value={}", request.getShipmentId(), request.getDeclarationValue());
         CustomsDeclaration declaration = customsRepository.findByShipmentId(request.getShipmentId())
                 .orElse(new CustomsDeclaration());
         
@@ -48,6 +56,7 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
         declaration.setStatus("SUBMITTED");
         
         CustomsDeclaration saved = customsRepository.save(declaration);
+        logger.info("Customs declaration for shipment ID {} submitted successfully. Compliant: {}", saved.getShipmentId(), saved.isCompliant());
         
         responseObserver.onNext(mapToResponse(saved));
         responseObserver.onCompleted();
@@ -56,17 +65,21 @@ public class CustomsGrpcService extends CustomsServiceGrpc.CustomsServiceImplBas
     @Override
     @PreAuthorize("hasAuthority('customs_officer')")
     public void approveCustomsClearance(CustomsIdRequest request, StreamObserver<CustomsResponse> responseObserver) {
+        logger.info("Approving customs clearance for shipment ID: {}", request.getShipmentId());
         customsRepository.findByShipmentId(request.getShipmentId()).ifPresentOrElse(declaration -> {
             if (!declaration.isCompliant()) {
+                logger.warn("Clearance approval failed: Shipment ID {} is not compliant", request.getShipmentId());
                 responseObserver.onError(io.grpc.Status.FAILED_PRECONDITION.withDescription("Cannot approve non-compliant declaration").asRuntimeException());
                 return;
             }
             declaration.setStatus("APPROVED");
             declaration.setClearedAt(LocalDateTime.now());
             CustomsDeclaration saved = customsRepository.save(declaration);
+            logger.info("Customs clearance approved for shipment ID: {}", saved.getShipmentId());
             responseObserver.onNext(mapToResponse(saved));
             responseObserver.onCompleted();
         }, () -> {
+            logger.warn("Clearance approval failed: Declaration for shipment ID {} not found", request.getShipmentId());
             responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription("Declaration not found").asRuntimeException());
         });
     }
